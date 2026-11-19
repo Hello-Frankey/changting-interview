@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package retest.v1;
+
+// 漏洞复测能力层。
+//
+// 设计约束：这里暴露的每一个方法都是**确定性**的。
+// LLM 只能通过这些方法拿事实，不能直接产生结论；
+// 结论由 Judge 给出，由 ValidateReport 做最后一道守卫。
+service RetestService {
+  // 列出待复测工单（不含真值）
+  rpc ListTickets(ListTicketsRequest) returns (TicketsResponse);
+
+  // 取数：对指定工单跑探针，返回证据
+  rpc CollectEvidence(CaseRequest) returns (EvidenceResponse);
+
+  // 把证据压成布尔信号
+  rpc ComputeSignals(CaseRequest) returns (SignalsResponse);
+
+  // 规则引擎判定（读 knowledge/false-fix-patterns.yaml）
+  rpc Judge(CaseRequest) returns (VerdictResponse);
+
+  // 报告守卫：校验 agent 交回的结论是否可被接受
+  rpc ValidateReport(ValidateReportRequest) returns (ValidateReportResponse);
+}
+
+message ListTicketsRequest {
+  // all | sqli | xss | access
+  string lab = 1;
+}
+
+message CaseRequest {
+  string case_id = 1 [json_name = "caseId"];
+}
+
+message Ticket {
+  string case_id = 1 [json_name = "caseId"];
+  string lab = 2;
+  string asset = 3;
+  string vuln_type = 4 [json_name = "vulnType"];
+  string title = 5;
+  string endpoint = 6;
+  string fix_note = 7 [json_name = "fixNote"];
+  string reported_version = 8 [json_name = "reportedVersion"];
+}
+
+message TicketsResponse {
+  repeated Ticket tickets = 1;
+  int32 count = 2;
+}
+
+message EvidenceItem {
+  string id = 1;
+  string kind = 2;
+  string endpoint = 3;
+  string label = 4;
+  // 0 表示没有拿到任何 HTTP 响应（连接失败 / 超时）
+  int32 status = 5;
+  int32 count = 6;
+  optional bool exploited = 7;
+  optional bool blocked = 8;
+  string sha256 = 9;
+  string body_head = 10 [json_name = "bodyHead"];
+}
+
+message EvidenceResponse {
+  repeated EvidenceItem evidence = 1;
+  int32 count = 2;
+}
+
+message SignalsResponse {
+  // 值统一转成字符串，便于 MCP 客户端消费
+  map<string, string> signals = 1;
+}
+
+message VerdictResponse {
+  string verdict = 1;
+  string pattern = 2;
+  string rule_id = 3 [json_name = "ruleId"];
+  string confidence = 4;
+  string human_review = 5 [json_name = "humanReview"];
+  string explanation = 6;
+  repeated string evidence_ids = 7 [json_name = "evidenceIds"];
+  repeated string failure_modes = 8 [json_name = "failureModes"];
+}
+
+message ValidateReportRequest {
+  string case_id = 1 [json_name = "caseId"];
+  string verdict = 2;
+  string pattern = 3;
+  repeated string evidence_ids = 4 [json_name = "evidenceIds"];
+  string explanation = 5;
+}
+
+message ValidateReportResponse {
+  // optional 让 false 也出现在 JSON 里；否则 proto3 会省略默认值，
+  // agent 就看不到 accepted=false，只能靠 violations 非空去推断。
+  optional bool accepted = 1;
+  repeated string violations = 2;
+  string tool_verdict = 3 [json_name = "toolVerdict"];
+}

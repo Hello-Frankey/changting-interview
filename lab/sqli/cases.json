@@ -1,0 +1,167 @@
+{
+  "lab": "sqli-minimal",
+  "note": "targets.origin 仅用于本实验环境模拟内网直连；真实复测中直连源站必须先取得授权。",
+  "verdict_space": [
+    "FIXED",
+    "PARTIAL",
+    "MITIGATED_NOT_FIXED",
+    "UNFIXED",
+    "UNVERIFIABLE"
+  ],
+  "pattern_space": [
+    "root_cause",
+    "single_point",
+    "edge_virtual_patch",
+    "bypassable_filter",
+    "version_only",
+    "no_fix",
+    "baseline_broken",
+    "unreachable"
+  ],
+  "cases": [
+    {
+      "case_id": "SQLI-001",
+      "variant": "v0_vulnerable",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "业务方称已修复"
+      },
+      "targets": {"edge": "http://127.0.0.1:8000", "origin": "http://127.0.0.1:8000"},
+      "ground_truth": "unfixed",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "no_fix",
+      "intent": "对照组。工单说已修复，实际一行代码都没改。"
+    },
+    {
+      "case_id": "SQLI-002",
+      "variant": "v1_truefix",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "三个入口全部改为参数化查询（commit 8f21c4d）"
+      },
+      "targets": {"edge": "http://127.0.0.1:8001", "origin": "http://127.0.0.1:8001"},
+      "ground_truth": "fixed",
+      "expected_verdict": "FIXED",
+      "expected_pattern": "root_cause",
+      "intent": "真正的修复：数据与 SQL 语法分离，通道被切断，变体一律无效。"
+    },
+    {
+      "case_id": "SQLI-003",
+      "variant": "v2_version_only",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "已升级依赖版本至 2.0.0"
+      },
+      "targets": {"edge": "http://127.0.0.1:8002", "origin": "http://127.0.0.1:8002"},
+      "ground_truth": "surface_version_only",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "version_only",
+      "intent": "版本号漂移。只看版本号或 /version 会误判为已修复，但代码一字未改。"
+    },
+    {
+      "case_id": "SQLI-004",
+      "variant": "v3_waf_only",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "已在网关增加拦截规则"
+      },
+      "targets": {"edge": "http://127.0.0.1:8004", "origin": "http://127.0.0.1:8003"},
+      "ground_truth": "surface_edge_block",
+      "expected_verdict": "MITIGATED_NOT_FIXED",
+      "expected_pattern": "edge_virtual_patch",
+      "intent": "虚拟补丁。公网打不通，但直连源站仍可利用；属于风险缓解，不是修复。"
+    },
+    {
+      "case_id": "SQLI-005",
+      "variant": "v4_blacklist",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "已增加非法字符过滤"
+      },
+      "targets": {"edge": "http://127.0.0.1:8005", "origin": "http://127.0.0.1:8005"},
+      "ground_truth": "surface_bypassable_filter",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "bypassable_filter",
+      "intent": "假净化。原始 PoC 被拦，但数字型注入不需要引号，一条 OR 变体即可绕过。"
+    },
+    {
+      "case_id": "SQLI-006",
+      "variant": "v5_partial",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "已修复 /api/user"
+      },
+      "targets": {"edge": "http://127.0.0.1:8006", "origin": "http://127.0.0.1:8006"},
+      "ground_truth": "partial",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "single_point",
+      "intent": "单点修复。被举报的入口真的修好了，但共用同一套拼接逻辑的兄弟入口没修。"
+    },
+    {
+      "case_id": "SQLI-007",
+      "variant": "v6_broken",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "业务方称已修复"
+      },
+      "targets": {"edge": "http://127.0.0.1:8007", "origin": "http://127.0.0.1:8007"},
+      "ground_truth": "baseline_broken",
+      "expected_verdict": "UNVERIFIABLE",
+      "expected_pattern": "baseline_broken",
+      "intent": "服务活着但取不到数据。所有 payload 都失败，看起来像已修复——其实是验证不了。"
+    },
+    {
+      "case_id": "SQLI-008",
+      "variant": "v7_unreachable",
+      "asset": "user-service",
+      "vuln_type": "sqli_numeric",
+      "reported_version": "1.4.2",
+      "ticket": {
+        "title": "用户查询接口 id 参数存在 SQL 注入",
+        "endpoint": "/api/user",
+        "poc": {"id": "0 UNION SELECT 1,'poc','poc-marker@lab','x'"},
+        "fix_note": "业务方称服务已下线"
+      },
+      "targets": {"edge": "http://127.0.0.1:8008", "origin": "http://127.0.0.1:8008"},
+      "ground_truth": "unreachable",
+      "expected_verdict": "UNVERIFIABLE",
+      "expected_pattern": "unreachable",
+      "intent": "网络不可达。同样必须判无法验证，绝不能因为打不通就判已修复。"
+    }
+  ]
+}

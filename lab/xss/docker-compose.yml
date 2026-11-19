@@ -1,0 +1,32 @@
+# XSS 靶场容器编排（端口 8100-8105）
+# 容器内必须 BIND=0.0.0.0，否则 Docker 端口映射落不到 loopback 上。
+services:
+  x0-vulnerable:
+    build: .
+    environment: { VARIANT: x0_vulnerable, PORT: "8100", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8100:8100"]
+
+  x1-truefix:
+    build: .
+    environment: { VARIANT: x1_truefix, PORT: "8101", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8101:8101"]
+
+  x2-angle-only:
+    build: .
+    environment: { VARIANT: x2_angle_only, PORT: "8102", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8102:8102"]
+
+  x3-blacklist:
+    build: .
+    environment: { VARIANT: x3_blacklist, PORT: "8103", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8103:8103"]
+
+  x4-csp-only:
+    build: .
+    environment: { VARIANT: x4_csp_only, PORT: "8104", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8104:8104"]
+
+  x5-partial:
+    build: .
+    environment: { VARIANT: x5_partial, PORT: "8105", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8105:8105"]

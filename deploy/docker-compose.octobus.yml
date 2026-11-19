@@ -1,0 +1,46 @@
+# OctoBus 部署编排
+#
+# 关键约束（对应考核说明 3.3.4）：
+#   **不对公网发布端口。** 这里完全没有 ports 段，容器只挂在 agent-compose 的
+#   内部网络上，只有 daemon 和 capproxy 能访问 octobus:9000。
+#
+# 使用前：
+#   1. agent-compose 已通过安装器部署，创建了网络 agent-compose_default
+#   2. 确认网络名： docker network ls | grep agent-compose
+#
+#   docker compose -f deploy/docker-compose.octobus.yml up -d --build
+
+services:
+  octobus:
+    build:
+      context: ./octobus
+    image: retest-octobus:local
+    container_name: octobus
+    restart: unless-stopped
+    networks:
+      - agent-compose
+    # 让容器能访问宿主机上跑的靶场。Linux 上没有 host.docker.internal，
+    # 必须显式映射到宿主机网关，否则探针只能打到容器自己。
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - octobus-data:/var/lib/octobus
+      # 仓库只读挂载：service 运行时需要 tools/retest_cli.py 与 knowledge/
+      - ${RETEST_REPO:-/opt/retest}:/opt/retest:ro
+    environment:
+      # 与官方镜像默认一致；容器内监听，宿主机不发布
+      OCTOBUS_ADDR: 0.0.0.0:9000
+      OCTOBUS_DATA_DIR: /var/lib/octobus
+      # 探针目标主机重写：工单里写的是 127.0.0.1，部署在容器里时要换成宿主机
+      RETEST_TARGET_HOST: ${RETEST_TARGET_HOST:-host.docker.internal}
+      # dev 模式会 seed 一个固定 token，**仅限内网实验**
+      # 生产请去掉 --dev，用 octobus admin-token add 自行签发
+    command: ["serve"]
+
+networks:
+  agent-compose:
+    external: true
+    name: ${AGENT_COMPOSE_NETWORK:-agent-compose_default}
+
+volumes:
+  octobus-data:

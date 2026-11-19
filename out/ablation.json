@@ -1,0 +1,298 @@
+{
+  "total": 21,
+  "baseline": {
+    "verdict": 21,
+    "pattern": 21,
+    "exact": 21
+  },
+  "naive": {
+    "verdict": 11,
+    "pattern": 7,
+    "exact": 7
+  },
+  "rows": [
+    {
+      "config": "完整知识库",
+      "verdict": 21,
+      "pattern": 21,
+      "exact": 21,
+      "broken": []
+    },
+    {
+      "config": "无知识库（朴素）",
+      "verdict": 11,
+      "pattern": 7,
+      "exact": 7,
+      "broken": [
+        "SQLI-003",
+        "SQLI-004",
+        "SQLI-005",
+        "SQLI-006",
+        "SQLI-007",
+        "XSS-003",
+        "XSS-004",
+        "XSS-005",
+        "XSS-006",
+        "ACC-003",
+        "ACC-004",
+        "ACC-005",
+        "ACC-006",
+        "ACC-007"
+      ]
+    },
+    {
+      "config": "移除 R01_UNREACHABLE",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-008"
+      ]
+    },
+    {
+      "config": "移除 R02_BASELINE_BROKEN",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-007"
+      ]
+    },
+    {
+      "config": "移除 R03_EDGE_VIRTUAL_PATCH",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-004"
+      ]
+    },
+    {
+      "config": "移除 R04_SINGLE_POINT",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-006"
+      ]
+    },
+    {
+      "config": "移除 R05_BYPASSABLE_FILTER",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-005"
+      ]
+    },
+    {
+      "config": "移除 R06_VERSION_ONLY",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-003"
+      ]
+    },
+    {
+      "config": "移除 R07_UNFIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-001"
+      ]
+    },
+    {
+      "config": "移除 R08_FIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "SQLI-002"
+      ]
+    },
+    {
+      "config": "移除 X01_CSP_ONLY",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "XSS-005"
+      ]
+    },
+    {
+      "config": "移除 X02_STORED_UNFIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "XSS-006"
+      ]
+    },
+    {
+      "config": "移除 X03_CONTEXT_MISMATCH",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "XSS-003"
+      ]
+    },
+    {
+      "config": "移除 X04_BYPASSABLE_FILTER",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "XSS-004"
+      ]
+    },
+    {
+      "config": "移除 X05_UNFIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "XSS-001"
+      ]
+    },
+    {
+      "config": "移除 X06_FIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "XSS-002"
+      ]
+    },
+    {
+      "config": "移除 A01_SILENT_WRITE",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-007"
+      ]
+    },
+    {
+      "config": "移除 A02_VERTICAL_UNFIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-006"
+      ]
+    },
+    {
+      "config": "移除 A03_SIBLING_VIEW",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-005"
+      ]
+    },
+    {
+      "config": "移除 A04_UNGUESSABLE_ID",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-004"
+      ]
+    },
+    {
+      "config": "移除 A05_LIST_ONLY",
+      "verdict": 21,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-003"
+      ]
+    },
+    {
+      "config": "移除 A06_UNFIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-001"
+      ]
+    },
+    {
+      "config": "移除 A07_FIXED",
+      "verdict": 20,
+      "pattern": 20,
+      "exact": 20,
+      "broken": [
+        "ACC-002"
+      ]
+    }
+  ],
+  "rule_hits": {
+    "R01_UNREACHABLE": [
+      "SQLI-008"
+    ],
+    "R02_BASELINE_BROKEN": [
+      "SQLI-007"
+    ],
+    "R03_EDGE_VIRTUAL_PATCH": [
+      "SQLI-004"
+    ],
+    "R04_SINGLE_POINT": [
+      "SQLI-006"
+    ],
+    "R05_BYPASSABLE_FILTER": [
+      "SQLI-005"
+    ],
+    "R06_VERSION_ONLY": [
+      "SQLI-003"
+    ],
+    "R07_UNFIXED": [
+      "SQLI-001"
+    ],
+    "R08_FIXED": [
+      "SQLI-002"
+    ],
+    "X01_CSP_ONLY": [
+      "XSS-005"
+    ],
+    "X02_STORED_UNFIXED": [
+      "XSS-006"
+    ],
+    "X03_CONTEXT_MISMATCH": [
+      "XSS-003"
+    ],
+    "X04_BYPASSABLE_FILTER": [
+      "XSS-004"
+    ],
+    "X05_UNFIXED": [
+      "XSS-001"
+    ],
+    "X06_FIXED": [
+      "XSS-002"
+    ],
+    "A01_SILENT_WRITE": [
+      "ACC-007"
+    ],
+    "A02_VERTICAL_UNFIXED": [
+      "ACC-006"
+    ],
+    "A03_SIBLING_VIEW": [
+      "ACC-005"
+    ],
+    "A04_UNGUESSABLE_ID": [
+      "ACC-004"
+    ],
+    "A05_LIST_ONLY": [
+      "ACC-003"
+    ],
+    "A06_UNFIXED": [
+      "ACC-001"
+    ],
+    "A07_FIXED": [
+      "ACC-002"
+    ]
+  }
+}

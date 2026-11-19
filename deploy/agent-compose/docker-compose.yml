@@ -1,0 +1,62 @@
+# agent-compose 部署编排（不依赖 install.sh）
+#
+# 为什么自己维护一份而不是用官方安装器：
+#   安装器要从 GitHub Releases 下载二进制/资源，而本项目的目标服务器
+#   只保证能访问 ghcr.io。vendored 一份 compose，服务器只需要能拉 ghcr.io。
+#
+# 镜像来源全部是 ghcr.io，不使用 Docker Hub（chaitin/* 在 Docker Hub 上，
+# 但部分地域访问不了；ghcr.io 上同样有 latest）。
+#
+# 使用：
+#   cd deploy/agent-compose
+#   cp .env.example .env && 编辑 .env
+#   docker compose up -d
+
+name: agent-compose
+
+services:
+  agent-compose:
+    image: ${AGENT_COMPOSE_IMAGE:-ghcr.io/chaitin/agent-compose:latest}
+    container_name: agent-compose
+    restart: always
+    environment:
+      AGENT_COMPOSE_RUNTIME_BASE_URL: ${AGENT_COMPOSE_RUNTIME_BASE_URL:-http://agent-compose:7410}
+      SANDBOX_INIT_SOCKET_DIR: ${SANDBOX_INIT_SOCKET_DIR:-/data/run/agent-compose}
+
+      # ---- 数据面：能力代理 capproxy ----
+      # LISTEN 是 daemon 容器内的监听地址；TARGET 是沙箱容器看到它的地址。
+      # 沙箱只拿到 CAP_GRPC_TARGET 和每沙箱签发的 CAP_TOKEN，
+      # OctoBus 的地址与 token 都留在 daemon 侧。
+      CAP_GRPC_LISTEN: 0.0.0.0:7411
+      CAP_GRPC_TARGET: agent-compose:7411
+
+      # ---- 控制面鉴权（对应考核 3.2.4）----
+      AGENT_COMPOSE_AUTH_TOKEN: ${AGENT_COMPOSE_AUTH_TOKEN}
+
+      # ---- 上游模型（考核 3.2.3：Agent 可实际完成模型调用）----
+      # 走 daemon 侧代理，凭据不进入沙箱。
+      # LLM_API_PROTOCOL: responses（默认）| chat_completions（OpenAI 兼容后端用这个）
+      LLM_API_ENDPOINT: ${LLM_API_ENDPOINT}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_API_PROTOCOL: ${LLM_API_PROTOCOL:-chat_completions}
+      LLM_MODEL: ${LLM_MODEL}
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+      - ${AGENT_COMPOSE_DATA_DIR:-./data}:/data
+      - ./.env:/data/work/.env:ro
+      # 项目源码：daemon 需要能读到 agent-compose.yml 与 workspace
+      - ${RETEST_REPO:-/opt/retest}:/opt/retest:ro
+
+    working_dir: /data/work
+
+    # 只绑回环：考官通过 SSH 进来操作，控制面不对公网暴露
+    ports:
+      - 127.0.0.1:7410:7410
+
+  # 只用来把 guest 镜像拉到 daemon 的 docker 里，跑完即退
+  fetch-guest-image:
+    image: ${DEFAULT_IMAGE:-ghcr.io/chaitin/agent-compose-guest:latest}
+    command: ["true"]
+    restart: "no"

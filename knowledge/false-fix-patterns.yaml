@@ -1,0 +1,774 @@
+# =============================================================================
+# 漏洞复测 · 表层变更判定规则库
+# =============================================================================
+# 这份文件回答一个问题：当复测拿到"修复后"的目标，如何区分
+#   「根因被切断」 / 「只是某条输入形态不好使了」 / 「根本验证不了」。
+#
+# 设计约束（对应考核说明 5.2）
+# -----------------------------------------------------------------------------
+# 1. 每条规则都必须是**可执行判据**：条件是信号上的布尔断言，由 agent/judge.py
+#    逐条求值，不依赖模型的自由发挥。禁止写"应加强校验"这类无法求值的描述。
+# 2. 每条规则都必须被代码实际消费。验证方式：`python3 tools/ablate.py`
+#    会逐条禁用规则并报告输出变化——不变则说明该条是冗余的，应删除。
+# 3. 规则的**顺序**本身是知识：更具体的证据必须压过更一般的证据。
+#    例如"公网被拦但源站可直连"必须压过"主入口不可利用"，否则会误判为部分修复。
+# 4. 阈值必须给出出处（见 thresholds），不得凭空设定。
+#
+# 一句话原则：**"未修复"是阳性证据，"已修复"是阴性证明。前者永远比后者可靠。**
+# =============================================================================
+
+version: 1
+schema: chaitin.retest.false-fix-patterns/v1
+scope: [sqli_numeric, xss_reflected, access_control]
+language: zh-CN
+
+# -----------------------------------------------------------------------------
+# 阈值与出处
+# -----------------------------------------------------------------------------
+thresholds:
+  min_row_delta:
+    value: 1
+    unit: rows
+    used_by: [signal.exploited, signal.primary_effective, signal.sibling_effective]
+    provenance:
+      method: >
+        tools/calibrate.py 对每个变体的基线请求重复采样 30 次，统计返回行数的
+        极差（max-min）与返回体长度的极差，作为噪声地板。攻击组的增量必须显著
+        超过噪声地板才计为可利用。
+      samples: 30
+      observed: "行数极差 = 0；长度极差 = 0（响应为确定性 JSON）"
+      chosen: 1
+      rationale: >
+        噪声地板为 0，故最小有意义增量取 1 行。生产环境响应通常含动态内容
+        （时间戳、CSRF token、分页游标），行数/长度会有抖动，本阈值必须按
+        同一方法重新标定后使用；直接套用 1 是常见误判来源。
+      caveat: >
+        本靶场是确定性响应，噪声为 0，因此"标定"在此只能证明流程可用，
+        不能证明阈值在真实环境下足够。这是本实验的已知局限，README 中已声明。
+
+# -----------------------------------------------------------------------------
+# 信号词典 —— 规则的唯一输入
+# -----------------------------------------------------------------------------
+# 所有信号都由确定性探针产生，不含模型判断。规则只允许引用这里出现过的信号。
+signal_vocabulary:
+  connection_ok:
+    type: bool
+    definition: 至少有一次探针拿到了 HTTP 响应（任何状态码）。
+  baseline_ok:
+    type: bool
+    definition: >
+      主入口的基线请求返回 200，且返回行数 >= 1。
+      基线样本必须选"已知有数据"的输入；否则正常空响应会被误判为服务异常。
+  reachable:
+    type: bool
+    definition: baseline_ok 为真。这是"能否做出任何判定"的前提。
+  poc_effective:
+    type: bool
+    definition: 工单原始 PoC 仍然可利用（命中标记，或行数增量 >= min_row_delta）。
+  poc_neutralized:
+    type: bool
+    definition: 目标可达，但原始 PoC 不再可利用。
+  primary_effective:
+    type: bool
+    definition: 主入口（工单举报的那个）的同类变体中，至少一条可利用。
+  mutation_effective:
+    type: bool
+    definition: 同 primary_effective，用于"原始 PoC 失效但变体有效"的分支判断。
+  sibling_effective:
+    type: bool
+    definition: >
+      非主入口（共用同一套数据访问逻辑的兄弟入口）中，至少一条变体可利用。
+      兄弟入口的识别依据是"是否共用同一个 DAO / mapper / 拼接工具方法"。
+  origin_only_effective:
+    type: bool
+    definition: >
+      主入口在边缘侧被拦截（未观察到可利用），但直连源站后变体可利用。
+      这是"虚拟补丁"的可判定特征。
+  version_changed:
+    type: bool
+    definition: 观测到的版本号与工单记录的版本号不一致。
+  edge_block_observed:
+    type: bool
+    definition: >
+      观察到了"与应用响应形态不一致"的拦截页（状态 403/406 且 Content-Type 为
+      text/html，而应用本身返回 JSON）。这是启发式，不是确证，必须与直连结果交叉验证。
+
+
+  # ---- XSS 专用信号 ----
+  body_breakable:
+    type: bool
+    definition: 正文上下文的逃逸序列原样幸存（<svg/onload=...> 未被转义）。
+  attr_breakable:
+    type: bool
+    definition: 双引号属性上下文的逃逸序列原样幸存（" 未被转义成 &quot;）。
+  script_breakable:
+    type: bool
+    definition: JS 字符串上下文的逃逸序列原样幸存（" 未被转义或转义不完整）。
+  any_context_breakable:
+    type: bool
+    definition: 上述三个上下文中至少一个可逃逸。
+  all_contexts_breakable:
+    type: bool
+    definition: 三个上下文全部可逃逸。用于区分"完全没修"与"只修了一部分"。
+  reported_surface_safe:
+    type: bool
+    definition: 目标可达，且三个反射上下文全部不可逃逸。
+  stored_effective:
+    type: bool
+    definition: 存储型 XSS 可利用：提交的 payload 在列表页原样渲染。
+  encoding_observed:
+    type: bool
+    definition: >
+      探针 canary 中出现了实体或 unicode 转义形式（如 `&lt;`、`\u003c`）。
+      说明存在编码动作，只是可能选错了上下文——这是区分"假净化"与"上下文错配"的依据。
+  csp_present:
+    type: bool
+    definition: 响应携带 Content-Security-Policy 头。
+
+
+  # ---- 越权专用信号 ----
+  auth_ok:
+    type: bool
+    definition: 攻击者与受害者两个身份都成功登录，且受害者能列出自己的资源。
+  victim_resource_found:
+    type: bool
+    definition: 以受害者身份拿到了一个真实存在的资源标识（订单号等）。
+  horizontal_effective:
+    type: bool
+    definition: 用攻击者凭证读取受害者资源成功（返回 200 且拿到对方数据）。
+  sibling_effective:
+    type: bool
+    definition: 同一资源的不同视图（如 /orders/{id}/items）未做归属校验。
+  vertical_effective:
+    type: bool
+    definition: 普通用户调用管理接口成功。
+  list_filtered:
+    type: bool
+    definition: >
+      攻击者的列表接口不再返回受害者资源。注意：这只说明"列表被过滤了"，
+      不说明"单对象访问被校验了"——两者是最常见的混淆。
+  id_format:
+    type: string
+    definition: 资源标识的形态（numeric / uuid）。用于识别"把 ID 换成 UUID 当修复"。
+  silent_write_effective:
+    type: bool
+    definition: >
+      写操作返回 401/403，但随后以所有者身份回读发现对象已不存在。
+      即"鉴权在副作用之后"，响应码与真实状态不一致。
+
+# -----------------------------------------------------------------------------
+# 规则 —— 按 priority 升序求值，首个命中即返回
+# -----------------------------------------------------------------------------
+rules:
+
+  - id: R01_UNREACHABLE
+    priority: 10
+    name: 网络不可达
+    applies_to: [sqli_numeric, xss_reflected, access_control]
+    when:
+      all:
+        - {signal: reachable, is: false}
+        - {signal: connection_ok, is: false}
+    verdict: UNVERIFIABLE
+    pattern: unreachable
+    confidence: high
+    human_review: required
+    explanation: >
+      目标完全无响应。此时任何关于"已修复"的结论都不成立——没有证据不等于没有漏洞。
+    evidence_required:
+      - 连接错误的原始信息（异常类型 + 目标地址 + 时间戳）
+      - 是否尝试过备用入口 / 源站 / 其他时点
+    failure_modes:
+      - "把服务下线当作已修复：下线只消除了暴露面，代码缺陷仍在，重新拉起即复现。"
+      - "灰度期间只探测到未升级的实例，误判为不可达或已修复。"
+      - "限流 / 熔断造成的间歇性不可达，被当成稳定事实。"
+    not_evidence:
+      - field: 连接失败/超时
+        reason: 无法区分"服务没了"与"网络不通"与"被防火墙丢包"。
+
+  - id: R02_BASELINE_BROKEN
+    priority: 20
+    name: 服务存活但基线异常
+    applies_to: [sqli_numeric, xss_reflected, access_control]
+    when:
+      all:
+        - {signal: reachable, is: false}
+        - {signal: connection_ok, is: true}
+    verdict: UNVERIFIABLE
+    pattern: baseline_broken
+    confidence: high
+    human_review: required
+    explanation: >
+      服务能响应，但连"正常查询"都拿不到数据。这种情况下"所有 payload 都失败"
+      毫无意义——失败的原因不是修复，而是应用本身就取不到数。
+    evidence_required:
+      - 基线请求的完整响应
+      - 服务健康检查结果
+    failure_modes:
+      - "依赖的库/表不可用，接口对任何输入都返回空；攻击失败被误读为修复成功。"
+      - "基线样本本身选错（查了一个不存在的记录），正常空响应被误判为服务异常。"
+      - "鉴权中间件把基线和攻击流量一起拦了，两边都是 401，看起来'一致'。"
+    not_evidence:
+      - field: 所有 payload 均失败
+        reason: 应用本身失效时同样成立，无法归因。
+
+  - id: R03_EDGE_VIRTUAL_PATCH
+    priority: 30
+    name: 虚拟补丁（边界拦截，代码未修）
+    applies_to: [sqli_numeric]
+    when:
+      all:
+        - {signal: origin_only_effective, is: true}
+    verdict: MITIGATED_NOT_FIXED
+    pattern: edge_virtual_patch
+    confidence: high
+    human_review: required
+    explanation: >
+      公网入口被边界设备拦截，但直连源站仍可利用。风险被降低了，洞没有被修。
+      这类处置在报告里必须单独成类，不能计入"已修复"闭环。
+    evidence_required:
+      - 边缘侧的拦截响应
+      - 直连源站的可利用响应
+      - 直连的授权依据（谁批的、什么范围）
+    failure_modes:
+      - >
+        网关若只匹配原始 PoC 的字面量，一次编码即绕过；因此"公网打不通"既不能
+        证明规则有效，更不能证明代码修好。
+      - >
+        网关忘记先做 URL 解码是最常见的绕过：空格写成 '+'、等号写成 '%3D'，
+        正则全部落空。本实验在搭建时就踩过这个坑（见 lab/sqli/README.md）。
+      - >
+        源站网络隔离、无法直连时，无法区分"代码已修"与"边界拦住了"。
+        此时应降级为需人工，而不是猜一个结论。
+      - "虚拟补丁有生命周期：规则可能被下掉、可能被新版本覆盖，但没有任何机制保证代码被回头修掉。"
+    not_evidence:
+      - field: 403 / 406 状态码
+        reason: WAF 和业务代码都可能返回 403，语义不可区分。
+      - field: 空白响应 / 网关错误页
+        reason: 与"应用恰好没返回数据"无法区分。
+
+  - id: R04_SINGLE_POINT
+    priority: 40
+    name: 单点修复（兄弟入口未覆盖）
+    applies_to: [sqli_numeric]
+    when:
+      all:
+        - {signal: sibling_effective, is: true}
+        - {signal: primary_effective, is: false}
+        - {signal: origin_only_effective, is: false}
+    verdict: PARTIAL
+    pattern: single_point
+    confidence: high
+    human_review: none
+    explanation: >
+      被举报的那个入口确实修好了，但共用同一套数据访问逻辑的其他入口没有。
+      按"漏洞"而不是按"URL"修复，是这类问题的根因。
+    evidence_required:
+      - 兄弟入口清单
+      - 兄弟入口与主入口共用代码的证据（同一 mapper / DAO / 工具方法）
+      - 兄弟入口的可利用响应
+    failure_modes:
+      - "只测被举报的 URL，不测同一 handler 的其他 action。"
+      - "同一 controller 的不同方法、GraphQL 的另一条 query、后台管理副本。"
+      - >
+        框架的参数合并顺序会让 query 覆盖 body：测 body 时 payload 根本没进 sink，
+        于是误判 body 入口安全。
+      - "同名接口的多版本（/v1、/v2）只修了一个。"
+    not_evidence:
+      - field: 被举报入口不可利用
+        reason: 只覆盖了一条路径，不覆盖同一缺陷的其他实例。
+
+  - id: R05_BYPASSABLE_FILTER
+    priority: 50
+    name: 假净化（过滤可绕过）
+    applies_to: [sqli_numeric]
+    when:
+      all:
+        - {signal: poc_neutralized, is: true}
+        - {signal: mutation_effective, is: true}
+    verdict: UNFIXED
+    pattern: bypassable_filter
+    confidence: high
+    human_review: none
+    explanation: >
+      原始 PoC 失效了，但同类变体依然可利用。说明加的是"针对这条 payload 的过滤"，
+      不是"针对这个漏洞的修复"。只看原 PoC 的复测，会在这里给出相反结论。
+    evidence_required:
+      - 原始 PoC 的响应
+      - 至少一条等价变体的响应
+      - 两者差异的说明（为什么变体绕过了过滤）
+    failure_modes:
+      - >
+        数字型注入不需要引号：过滤单引号对 `1 OR 1=1` 完全无效。
+        这是"过滤了危险字符"最典型的自我安慰。
+      - "黑名单只拦了原始 PoC 用到的字符或关键字。"
+      - "大小写、注释、URL 编码、双重编码、空白替代（`/**/`、`%09`）都能绕过字符串匹配。"
+      - "GBK 宽字节：`addslashes` 在 `%bf%27` 下，`0xbf5c` 合成合法汉字，反斜杠被吃掉。"
+      - "转义函数用错上下文：PHP < 8.1 的 `htmlspecialchars` 默认 ENT_COMPAT 不转义单引号。"
+      - "用错误信息消失当作修复：多数框架已全局捕获异常，报错消失与注入失效无关。"
+    not_evidence:
+      - field: 原始 PoC 返回 400/403
+        reason: 只证明这条字面量被匹配，不证明通道被切断。
+      - field: 错误信息消失
+        reason: 全局异常处理会同时吞掉"攻击导致的错误"和"正常业务的错误"。
+      - field: 响应体中出现"非法字符"提示
+        reason: 这只说明过滤生效，不说明过滤有效。
+
+  - id: R06_VERSION_ONLY
+    priority: 60
+    name: 版本号漂移
+    applies_to: [sqli_numeric]
+    when:
+      all:
+        - {signal: primary_effective, is: true}
+        - {signal: version_changed, is: true}
+    verdict: UNFIXED
+    pattern: version_only
+    confidence: high
+    human_review: none
+    explanation: >
+      版本号变了，漏洞还在。版本号是**声明**，不是证据。
+    evidence_required:
+      - 变更前后的版本观测值
+      - 原始 PoC 的可利用响应
+    failure_modes:
+      - "改了 package.json / pom.xml，但镜像没有重建，线上跑的还是旧 artifact。"
+      - "版本号被 CDN / 反向代理重写，与实际运行版本无关。"
+      - "应用把版本写死在配置里，升级依赖不会改变它。"
+      - "灰度发布：版本号只在部分实例上生效。"
+    not_evidence:
+      - field: Server / X-Powered-By / X-App-Version 响应头
+        reason: 可被任意中间层重写，与真实 artifact 无强绑定。
+      - field: /version 端点
+        reason: 与响应头同理，且常由应用静态配置提供。
+      - field: CHANGELOG / release note
+        reason: 描述意图，不描述线上状态。
+
+  - id: R07_UNFIXED
+    priority: 70
+    name: 未修复（阳性证据）
+    applies_to: [sqli_numeric]
+    when:
+      all:
+        - {signal: primary_effective, is: true}
+    verdict: UNFIXED
+    pattern: no_fix
+    confidence: high
+    human_review: none
+    explanation: 工单举报的入口仍可被原始 PoC 或其变体利用。通道没有变化。
+    evidence_required:
+      - 可利用请求与响应的完整快照（含哈希）
+    failure_modes:
+      - "只重放原始 PoC，漏掉变体与兄弟入口，会把部分修复误判为未修复（方向安全的错误）。"
+    not_evidence: []
+
+  - id: R08_FIXED
+    priority: 80
+    name: 根因修复（阴性证明）
+    applies_to: [sqli_numeric]
+    when:
+      all:
+        - {signal: reachable, is: true}
+        - {signal: primary_effective, is: false}
+        - {signal: sibling_effective, is: false}
+        - {signal: origin_only_effective, is: false}
+        - {signal: mutation_effective, is: false}
+    verdict: FIXED
+    pattern: root_cause
+    confidence: medium
+    human_review: recommended
+    explanation: >
+      基线正常，且主入口与兄弟入口的全部变体都无法超出基线。这是阴性证明，
+      强度天然弱于"未修复"的阳性证据，因此置信度只到 medium。
+    evidence_required:
+      - 基线请求成功的证据
+      - 每个入口的变体矩阵及全部响应
+      - 变体覆盖清单（证明"测过"而不是"没测到"）
+    failure_modes:
+      - >
+        阴性证明的强度取决于变体矩阵的完备性。"没测到"与"不存在"无法区分，
+        所以变体矩阵必须能说清覆盖了哪些等价变形。
+      - "应用不健康时所有 payload 都会失败，从而伪造出'已修复'。"
+      - "存在未纳入矩阵的载体（header / cookie / multipart filename / GraphQL variable）。"
+    not_evidence:
+      - field: 单次请求失败
+        reason: 网络抖动、限流、缓存都会造成单次失败，必须重复采样。
+      - field: 扫描器报告"已修复"
+        reason: 扫描器依签名判断，签名未覆盖该变体即漏报。
+    note: >
+      这是本规则库中唯一给出"已修复"的规则。它要求五条否定同时成立，
+      任何一条被击穿都会退化到更保守的规则——这是刻意的设计：
+      在复测里，"说已修复"的成本必须高于"说未修复"。
+
+  # ===========================================================================
+  # XSS 规则组
+  # ===========================================================================
+  # 与 SQLi 的根本差别：SQLi 一处修好即修好；XSS 必须逐上下文判定。
+  # 「反射」只是必要条件，「逃逸出所在上下文」才是充分条件。
+
+  - id: X01_CSP_ONLY
+    priority: 30
+    name: CSP 缓解（反射未修）
+    applies_to: [xss_reflected]
+    when:
+      all:
+        - {signal: csp_present, is: true}
+        - {signal: any_context_breakable, is: true}
+    verdict: MITIGATED_NOT_FIXED
+    pattern: csp_mitigation
+    confidence: high
+    human_review: required
+    explanation: >
+      输入仍然原样反射进页面，只是执行被 CSP 限制。这与 WAF 虚拟补丁同构：
+      风险降低了，漏洞本体没动。
+    evidence_required:
+      - 携带 CSP 头的响应
+      - 原样反射的逃逸序列
+      - CSP 的具体策略（是否含 unsafe-inline / 通配符 / report-only）
+    failure_modes:
+      - "CSP 可绕过：JSONP 端点、白名单 CDN、script gadget、DOM clobbering。"
+      - "只配 report-only 时根本不拦截，等于没有。"
+      - "老浏览器 / 内嵌 WebView / 非浏览器消费者（邮件客户端、导出报表）不受约束。"
+      - "CSP 头可能在下个版本被下掉，却没有任何机制保证代码被回头修。"
+    not_evidence:
+      - field: CSP 响应头存在
+        reason: 它描述的是浏览器侧的约束，不描述服务端是否还反射不可信数据。
+      - field: 浏览器控制台没有弹窗
+        reason: 拦截的是执行，不是注入；换一个允许的来源即可利用。
+
+  - id: X02_STORED_UNFIXED
+    priority: 40
+    name: 存储点未修（反射点已修）
+    applies_to: [xss_reflected]
+    when:
+      all:
+        - {signal: reported_surface_safe, is: true}
+        - {signal: stored_effective, is: true}
+    verdict: PARTIAL
+    pattern: single_point
+    confidence: high
+    human_review: none
+    explanation: >
+      被举报的反射点确实修好了，但同一类缺陷的存储型实例没有修。
+      存储型 XSS 的触发面通常更大：后台审核页、导出报表、通知邮件都会成为执行点。
+    evidence_required:
+      - 存储点的渲染响应
+      - 存储点与反射点未共用同一编码函数的证据
+    failure_modes:
+      - "只修被举报的 URL，不排查同一类 sink 的其他实例：评论、昵称、工单标题、日志回显、邮件模板。"
+      - "同一份数据在多个页面渲染，只修了其中一个页面。"
+      - "存储型 payload 需要二次触发（后台查看、导出），复测时容易漏测。"
+    not_evidence:
+      - field: 被举报页面已安全
+        reason: 只覆盖了一个渲染点，不覆盖同一份数据的所有消费方。
+
+  - id: X03_CONTEXT_MISMATCH
+    priority: 50
+    name: 编码存在但上下文错配
+    applies_to: [xss_reflected]
+    when:
+      all:
+        - {signal: poc_neutralized, is: true}
+        - {signal: any_context_breakable, is: true}
+        - {signal: encoding_observed, is: true}
+    verdict: UNFIXED
+    pattern: context_mismatch
+    confidence: high
+    human_review: none
+    explanation: >
+      有转义动作，但用错了上下文。这是 XSS 最典型的假修复：
+      原始 PoC 失效了，因为它的危险字符恰好被转义；换一个该上下文真正依赖的
+      逃逸字符，依然可以执行。
+    evidence_required:
+      - 每个上下文的逃逸序列与响应
+      - 转义函数作用于哪个上下文的证据
+    failure_modes:
+      - "只转义 & < >，不转义引号：双引号属性值和 JS 字符串靠的都是引号逃逸。"
+      - >
+        在 JS 上下文里用 HTML 实体编码：浏览器不解析 script 内的实体，
+        数据被破坏但安全；反过来只做 JSON 编码也不够——`</script>` 仍会闭合脚本块，
+        必须把 < > & 转成 \\u003c 这类形式。
+      - "把 URL 编码当 HTML 编码用，对</>和引号都无效。"
+      - "属性值不加引号：任何空格加事件属性都能注入，编码函数再对也没用。"
+      - "同一个值渲染到页面多个位置，只对其中一个位置编码。"
+    not_evidence:
+      - field: 页面上看不到 <script> 标签
+        reason: 可能是被转义，也可能是被黑名单删掉；前者在某些上下文安全，后者一律可绕过。
+      - field: 输入里含有尖括号就判危险
+        reason: 正文上下文里尖括号被转义即为安全，判据是"是否逃逸"而不是"是否含危险字符"。
+
+  - id: X04_BYPASSABLE_FILTER
+    priority: 55
+    name: 黑名单可绕过
+    applies_to: [xss_reflected]
+    when:
+      all:
+        - {signal: poc_neutralized, is: true}
+        - {signal: any_context_breakable, is: true}
+        - {signal: encoding_observed, is: false}
+    verdict: UNFIXED
+    pattern: bypassable_filter
+    confidence: high
+    human_review: none
+    explanation: >
+      没有编码动作，只有关键字拦截。原始 PoC 被拦住了，但拦截针对的是字面量，
+      而不是这个上下文的安全性问题。
+    evidence_required:
+      - 原始 PoC 被拒的响应
+      - 至少一条等价上下文的逃逸响应
+    failure_modes:
+      - "只拦 <script：<img onerror>、<svg onload>、<body onload> 全部幸存。"
+      - "大小写、HTML 实体（&#x3c;）、多余空格、注释、换行都能绕过字符串匹配。"
+      - "属性逃逸和 JS 字符串逃逸根本不需要尖括号，黑名单对它们完全无效。"
+      - "事件处理器黑名单（onerror/onload）可用 onfocus/onanimationstart/ontoggle 替代。"
+    not_evidence:
+      - field: 原始 PoC 返回 400
+        reason: 只证明这一条字面量被匹配，不证明上下文被约束。
+
+  - id: X05_UNFIXED
+    priority: 70
+    name: 未修复（阳性证据）
+    applies_to: [xss_reflected]
+    when:
+      any:
+        - {signal: any_context_breakable, is: true}
+        - {signal: stored_effective, is: true}
+    verdict: UNFIXED
+    pattern: no_fix
+    confidence: high
+    human_review: none
+    explanation: 至少一个上下文可以逃逸，漏洞仍然存在。
+    evidence_required:
+      - 可利用的请求与响应快照（含哈希）
+    failure_modes:
+      - "只测一个上下文就下结论：正文安全不代表属性安全，属性安全不代表 JS 字符串安全。"
+    not_evidence: []
+
+  - id: X06_FIXED
+    priority: 80
+    name: 根因修复（阴性证明）
+    applies_to: [xss_reflected]
+    when:
+      all:
+        - {signal: reported_surface_safe, is: true}
+        - {signal: stored_effective, is: false}
+    verdict: FIXED
+    pattern: root_cause
+    confidence: medium
+    human_review: recommended
+    explanation: >
+      三个反射上下文与存储上下文均无法逃逸，且基线正常。
+      这是阴性证明，强度弱于"未修复"的阳性证据。
+    evidence_required:
+      - 每个上下文的逃逸序列与响应
+      - 存储点的渲染响应
+      - 上下文覆盖清单
+    failure_modes:
+      - "上下文覆盖不全：正文 / 属性 / JS 字符串 / URL / 注释 / textarea 都算不同上下文。"
+      - "没测存储点，只测了反射点。"
+      - >
+        DOM 型 XSS 不经过服务端响应（如 location.hash 直接进 innerHTML），
+        服务端反射检测完全看不到。本规则库目前**不覆盖 DOM 型**，这是已知盲区。
+    not_evidence:
+      - field: 单次响应中看不到 payload
+        reason: 可能被长度截断、被规范化，必须按上下文逐条验证。
+    note: >
+      与 R08_FIXED 同构：要求所有否定同时成立，任何一条被击穿即退化到更保守的规则。
+      另外，本规则只覆盖服务端渲染的反射型与存储型；DOM 型 XSS 需要浏览器侧探针，
+      属于本实验的明确盲区。
+
+  # ===========================================================================
+  # 越权规则组
+  # ===========================================================================
+  # 与前两组最大的差别：越权的响应是"正常"的。
+  # 200、结构合法、数据真实——单看一个请求永远发现不了，必须跨主体对照。
+  # 因此这里的判据不是"响应异常"，而是"这个主体拿到了不属于它的东西"。
+
+  - id: A01_SILENT_WRITE
+    priority: 25
+    name: 静默写入（403 但已生效）
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: silent_write_effective, is: true}
+    verdict: UNFIXED
+    pattern: silent_write
+    confidence: high
+    human_review: none
+    explanation: >
+      越权写操作返回了 403，但随后以所有者身份回读，对象已经不存在。
+      鉴权发生在副作用之后——响应码与真实状态不一致。
+      只看响应码的复测会在这里判"已拦截"。
+    evidence_required:
+      - 越权写请求的响应（含状态码）
+      - 写操作之后以所有者身份的回读响应
+      - 回读时间点与写请求的时间关系
+    failure_modes:
+      - "鉴权写在业务逻辑之后：先扣款/先删除/先改状态，再判断归属。"
+      - "异步处理：接口先返回 403，后台任务已经把消息发出去了。"
+      - "事务里先写再校验，异常被吞掉，响应是 403 但事务已提交。"
+      - "分布式场景：网关拒绝，但服务内部已经被另一条链路调用过。"
+    not_evidence:
+      - field: 403 / 401 响应码
+        reason: 它只说明"最终返回了什么"，不说明"中间做了什么"。
+
+  - id: A02_VERTICAL_UNFIXED
+    priority: 30
+    name: 垂直越权未修（水平已修）
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: vertical_effective, is: true}
+        - {signal: horizontal_effective, is: false}
+    verdict: PARTIAL
+    pattern: vertical_unfixed
+    confidence: high
+    human_review: none
+    explanation: >
+      同一层级之间的越权（水平）修好了，但低权限调高权限接口（垂直）仍然可行。
+      水平与垂直是两个正交维度，修一个不代表修另一个。
+    evidence_required:
+      - 普通用户调用管理接口成功的响应
+      - 水平越权已被拦截的对照证据
+      - 角色与权限矩阵
+    failure_modes:
+      - "只加归属校验（owner_id == current_user），忘了角色校验。"
+      - "管理接口散落在多个服务，只修了主应用。"
+      - "前端隐藏了入口，接口仍然可调。"
+      - "角色判断依赖客户端传入的参数（如 X-Role 头、role 字段）。"
+    not_evidence:
+      - field: 页面上看不到管理菜单
+        reason: 前端可见性与后端授权是两件事，直接构造请求即可绕过。
+
+  - id: A03_SIBLING_VIEW
+    priority: 40
+    name: 子资源视图未修
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: sibling_effective, is: true}
+        - {signal: horizontal_effective, is: false}
+    verdict: PARTIAL
+    pattern: single_point
+    confidence: high
+    human_review: none
+    explanation: >
+      主对象接口加了归属校验，但同一对象的不同视图（子资源、导出、打印、
+      附件下载）没有加。同一个订单，换一个入口就能读到。
+    evidence_required:
+      - 子资源接口的越权响应
+      - 主接口已被拦截的对照证据
+    failure_modes:
+      - "只给 /orders/{id} 加校验，漏了 /orders/{id}/items、/export、/pdf。"
+      - "同一对象在多个服务有多份视图，只修了主服务。"
+      - "批量接口 /orders?ids=1,2,3 是另一个入口，常被遗漏。"
+    not_evidence:
+      - field: 主接口返回 403
+        reason: 只覆盖了一个视图，不覆盖同一资源的其他读取路径。
+
+  - id: A04_UNGUESSABLE_ID
+    priority: 50
+    name: 不可猜测 ID 冒充授权
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: horizontal_effective, is: true}
+        - {signal: id_format, is: uuid}
+    verdict: UNFIXED
+    pattern: unguessable_id
+    confidence: high
+    human_review: none
+    explanation: >
+      把自增 ID 换成 UUID，但归属校验依然缺失。UUID 只是提高了枚举成本，
+      不是授权：它会通过分享链接、导出文件、日志、第三方回调、浏览器历史泄露。
+      而且本探针正是通过受害者自己的会话拿到的标识——真实攻击者同样可以。
+    evidence_required:
+      - 受害者视角下获取到的标识来源
+      - 攻击者用该标识访问成功的响应
+    failure_modes:
+      - "把 UUID 当作访问控制，实际只是 IDOR 的难度调节。"
+      - "UUID 出现在邮件、导出 CSV、前端埋点、日志里，泄露面反而更广。"
+      - "同一资源在不同接口用不同 ID 体系，只改了其中一个。"
+    not_evidence:
+      - field: ID 不可枚举
+        reason: 不可枚举只影响发现成本，不影响越权本身是否成立。
+
+  - id: A05_LIST_ONLY
+    priority: 55
+    name: 只过滤列表，未校验单对象
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: horizontal_effective, is: true}
+        - {signal: list_filtered, is: true}
+    verdict: UNFIXED
+    pattern: list_filtered_not_object
+    confidence: high
+    human_review: none
+    explanation: >
+      列表接口按当前用户过滤了，看起来"只能看到自己的订单"，但单对象接口
+      没有做归属校验，直接访问他人 ID 依然成功。
+      这是越权里最常见、也最容易在演示中蒙混过关的一种假修复。
+    evidence_required:
+      - 列表只返回自己资源的证据
+      - 直接访问他人 ID 成功的响应
+    failure_modes:
+      - "把 WHERE owner_id = ? 加在了列表查询上，详情查询仍按主键取。"
+      - "前端从列表拿不到别人的 ID，但 ID 可枚举或被分享。"
+      - "演示时只点页面、不构造请求，永远发现不了。"
+    not_evidence:
+      - field: 列表里看不到别人的数据
+        reason: 列表过滤是查询条件，不是访问控制；详情接口是另一条代码路径。
+
+  - id: A06_UNFIXED
+    priority: 70
+    name: 未修复（阳性证据）
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: horizontal_effective, is: true}
+    verdict: UNFIXED
+    pattern: no_fix
+    confidence: high
+    human_review: none
+    explanation: 攻击者凭证仍能读取受害者资源。
+    evidence_required:
+      - 跨主体访问的请求与响应快照（含哈希）
+    failure_modes:
+      - "只用一个账号测试，没有对照主体，永远测不出越权。"
+      - "只测列表不测详情，只测读不测写。"
+    not_evidence: []
+
+  - id: A07_FIXED
+    priority: 80
+    name: 根因修复（阴性证明）
+    applies_to: [access_control]
+    when:
+      all:
+        - {signal: reachable, is: true}
+        - {signal: horizontal_effective, is: false}
+        - {signal: sibling_effective, is: false}
+        - {signal: vertical_effective, is: false}
+        - {signal: silent_write_effective, is: false}
+    verdict: FIXED
+    pattern: root_cause
+    confidence: medium
+    human_review: recommended
+    explanation: >
+      水平、垂直、子资源、写操作四个维度全部被拦截，且基线正常。
+      这是阴性证明，置信度只到 medium。
+    evidence_required:
+      - 跨主体访问被拦截的响应
+      - 管理接口被拦截的响应
+      - 越权写入后所有者回读仍存在的证据
+    failure_modes:
+      - "只覆盖了被举报的那个接口，其他对象的接口未纳入矩阵。"
+      - "写操作没有回读验证，403 可能是假拦截。"
+      - "权限模型变更后没有回归，新增接口默认不校验。"
+      - "多租户场景：租户内校验做了，跨租户没做。"
+    not_evidence:
+      - field: 接口返回 403
+        reason: 对写操作而言，403 不等于没生效，必须回读状态。
+    note: >
+      越权的阴性证明必须覆盖"读 / 写 / 水平 / 垂直 / 子资源"五个维度。
+      少任何一个维度，都可能把一个仍然可利用的洞判成已修复。

@@ -1,0 +1,31 @@
+# 靶场自启服务
+#
+# 为什么需要：run_local.sh 用 nohup 起进程，服务器重启后不会恢复。
+# 虽然考核要求的"两套服务"是 agent-compose 与 OctoBus，但如果靶场没了，
+# 考官重启后跑 Agent 会看到一堆 UNVERIFIABLE —— 看起来像 Agent 坏了。
+#
+# 安装：
+#   sudo cp deploy/retest-labs.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now retest-labs
+#
+# 注意 BIND=0.0.0.0：OctoBus 跑在容器里，绑 127.0.0.1 的话容器探不到。
+
+[Unit]
+Description=Retest lab targets (sqli / xss / access)
+Documentation=file:///opt/retest/lab/sqli/README.md
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=BIND=0.0.0.0
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/bin/bash -c 'for l in sqli xss access; do cd /opt/retest/lab/$l && ./run_local.sh up || exit 1; done'
+ExecStop=/bin/bash -c 'for l in sqli xss access; do cd /opt/retest/lab/$l && ./run_local.sh down || true; done'
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

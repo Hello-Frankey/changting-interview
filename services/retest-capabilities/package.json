@@ -1,0 +1,13 @@
+{
+  "name": "octobus-retest-capabilities",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic retest capabilities exposed through OctoBus",
+  "bin": {
+    "retest-capabilities": "bin/retest.js"
+  },
+  "dependencies": {
+    "@chaitin-ai/octobus-sdk": "^0.6.1"
+  }
+}

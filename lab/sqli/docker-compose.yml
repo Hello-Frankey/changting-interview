@@ -1,0 +1,52 @@
+# 靶场容器编排 —— 与 run_local.sh 等价，但更接近最终部署形态。
+#
+# 注意两点：
+# 1. 容器内必须 BIND=0.0.0.0，否则 Docker 的端口映射（转发到容器 IP）落不到 loopback 上。
+# 2. v3 的应用容器只映射到宿主机回环，模拟"内网可达、公网不可达"。
+#    复测时的"直连源站"仅限本实验环境；真实环境必须先取得授权。
+services:
+  v0-vulnerable:
+    build: .
+    environment: { VARIANT: v0_vulnerable, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8000:8000"]
+
+  v1-truefix:
+    build: .
+    environment: { VARIANT: v1_truefix, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8001:8000"]
+
+  v2-version-only:
+    build: .
+    environment: { VARIANT: v2_version_only, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8002:8000"]
+
+  v3-app:
+    build: .
+    environment: { VARIANT: v3_waf_only, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8003:8000"]
+
+  v3-edge:
+    build: .
+    command: ["python3", "edge.py"]
+    environment:
+      ORIGIN: http://v3-app:8000
+      EDGE_PORT: "8000"
+      BIND: "0.0.0.0"
+    depends_on: [v3-app]
+    ports: ["127.0.0.1:8004:8000"]
+
+  v4-blacklist:
+    build: .
+    environment: { VARIANT: v4_blacklist, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8005:8000"]
+
+  v5-partial:
+    build: .
+    environment: { VARIANT: v5_partial, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8006:8000"]
+
+  # 服务活着但取不到数据：用于区分"网络不可达"与"活着但验证不了"
+  v6-broken:
+    build: .
+    environment: { VARIANT: v6_broken, PORT: "8000", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8007:8000"]

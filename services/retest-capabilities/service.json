@@ -1,0 +1,12 @@
+{
+  "schema": "chaitin.octobus.service.v1",
+  "name": "retest-capabilities",
+  "displayName": "Vulnerability Retest Capabilities",
+  "description": "Deterministic capabilities for vulnerability retest: list tickets, collect evidence, compute signals, rule-based judgement, and report validation. All judgement logic lives in knowledge/false-fix-patterns.yaml; this service only exposes it.",
+  "proto": {
+    "roots": ["proto"],
+    "files": ["proto/retest.proto"]
+  },
+  "configSchema": "config.schema.json",
+  "secretSchema": "secret.schema.json"
+}

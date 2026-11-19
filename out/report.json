@@ -1,0 +1,1820 @@
+{
+  "total": 21,
+  "verdict_hits": 21,
+  "pattern_hits": 21,
+  "results": [
+    {
+      "case_id": "SQLI-001",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v0_vulnerable",
+      "verdict": "UNFIXED",
+      "pattern": "no_fix",
+      "rule_id": "R07_UNFIXED",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "no_fix",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": true,
+        "poc_neutralized": false,
+        "primary_effective": true,
+        "mutation_effective": true,
+        "sibling_effective": true,
+        "origin_only_effective": false,
+        "version_changed": false,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-001:edge:version:/version",
+        "SQLI-001:edge:baseline:/api/user",
+        "SQLI-001:edge:mutation:/api/user:or_true",
+        "SQLI-001:edge:mutation:/api/user:bool_true",
+        "SQLI-001:edge:mutation:/api/user:bool_false",
+        "SQLI-001:edge:baseline:/api/search",
+        "SQLI-001:edge:mutation:/api/search:or_string",
+        "SQLI-001:edge:baseline:/api/export",
+        "SQLI-001:edge:mutation:/api/export:or_true",
+        "SQLI-001:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "miss"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "miss"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "miss"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "skipped"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "skipped"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "miss"
+        ],
+        [
+          "R07_UNFIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-002",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v1_truefix",
+      "verdict": "FIXED",
+      "pattern": "root_cause",
+      "rule_id": "R08_FIXED",
+      "confidence": "medium",
+      "human_review": "recommended",
+      "expected_verdict": "FIXED",
+      "expected_pattern": "root_cause",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "primary_effective": false,
+        "mutation_effective": false,
+        "sibling_effective": false,
+        "origin_only_effective": false,
+        "version_changed": false,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-002:edge:version:/version",
+        "SQLI-002:edge:baseline:/api/user",
+        "SQLI-002:edge:mutation:/api/user:or_true",
+        "SQLI-002:edge:mutation:/api/user:bool_true",
+        "SQLI-002:edge:mutation:/api/user:bool_false",
+        "SQLI-002:edge:baseline:/api/search",
+        "SQLI-002:edge:mutation:/api/search:or_string",
+        "SQLI-002:edge:baseline:/api/export",
+        "SQLI-002:edge:mutation:/api/export:or_true",
+        "SQLI-002:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "miss"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "miss"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "miss"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "skipped"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "skipped"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "miss"
+        ],
+        [
+          "R07_UNFIXED",
+          "miss"
+        ],
+        [
+          "X05_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A06_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R08_FIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-003",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v2_version_only",
+      "verdict": "UNFIXED",
+      "pattern": "version_only",
+      "rule_id": "R06_VERSION_ONLY",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "version_only",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": true,
+        "poc_neutralized": false,
+        "primary_effective": true,
+        "mutation_effective": true,
+        "sibling_effective": true,
+        "origin_only_effective": false,
+        "version_changed": true,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-003:edge:version:/version",
+        "SQLI-003:edge:baseline:/api/user",
+        "SQLI-003:edge:mutation:/api/user:or_true",
+        "SQLI-003:edge:mutation:/api/user:bool_true",
+        "SQLI-003:edge:mutation:/api/user:bool_false",
+        "SQLI-003:edge:baseline:/api/search",
+        "SQLI-003:edge:mutation:/api/search:or_string",
+        "SQLI-003:edge:baseline:/api/export",
+        "SQLI-003:edge:mutation:/api/export:or_true",
+        "SQLI-003:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "miss"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "miss"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "miss"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "skipped"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "skipped"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-004",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v3_waf_only",
+      "verdict": "MITIGATED_NOT_FIXED",
+      "pattern": "edge_virtual_patch",
+      "rule_id": "R03_EDGE_VIRTUAL_PATCH",
+      "confidence": "high",
+      "human_review": "required",
+      "expected_verdict": "MITIGATED_NOT_FIXED",
+      "expected_pattern": "edge_virtual_patch",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "primary_effective": false,
+        "mutation_effective": false,
+        "sibling_effective": true,
+        "origin_only_effective": true,
+        "version_changed": false,
+        "edge_block_observed": true
+      },
+      "evidence_ids": [
+        "SQLI-004:edge:version:/version",
+        "SQLI-004:edge:baseline:/api/user",
+        "SQLI-004:edge:mutation:/api/user:or_true",
+        "SQLI-004:edge:mutation:/api/user:bool_true",
+        "SQLI-004:edge:mutation:/api/user:bool_false",
+        "SQLI-004:edge:baseline:/api/search",
+        "SQLI-004:edge:mutation:/api/search:or_string",
+        "SQLI-004:edge:baseline:/api/export",
+        "SQLI-004:edge:mutation:/api/export:or_true",
+        "SQLI-004:edge:poc:/api/user",
+        "SQLI-004:origin:version:/version",
+        "SQLI-004:origin:baseline:/api/user",
+        "SQLI-004:origin:mutation:/api/user:or_true",
+        "SQLI-004:origin:mutation:/api/user:bool_true",
+        "SQLI-004:origin:mutation:/api/user:bool_false",
+        "SQLI-004:origin:baseline:/api/search",
+        "SQLI-004:origin:mutation:/api/search:or_string",
+        "SQLI-004:origin:baseline:/api/export",
+        "SQLI-004:origin:mutation:/api/export:or_true",
+        "SQLI-004:origin:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-005",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v4_blacklist",
+      "verdict": "UNFIXED",
+      "pattern": "bypassable_filter",
+      "rule_id": "R05_BYPASSABLE_FILTER",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "bypassable_filter",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "primary_effective": true,
+        "mutation_effective": true,
+        "sibling_effective": true,
+        "origin_only_effective": false,
+        "version_changed": false,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-005:edge:version:/version",
+        "SQLI-005:edge:baseline:/api/user",
+        "SQLI-005:edge:mutation:/api/user:or_true",
+        "SQLI-005:edge:mutation:/api/user:bool_true",
+        "SQLI-005:edge:mutation:/api/user:bool_false",
+        "SQLI-005:edge:baseline:/api/search",
+        "SQLI-005:edge:mutation:/api/search:or_string",
+        "SQLI-005:edge:baseline:/api/export",
+        "SQLI-005:edge:mutation:/api/export:or_true",
+        "SQLI-005:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "miss"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "miss"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-006",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v5_partial",
+      "verdict": "PARTIAL",
+      "pattern": "single_point",
+      "rule_id": "R04_SINGLE_POINT",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "single_point",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "primary_effective": false,
+        "mutation_effective": false,
+        "sibling_effective": true,
+        "origin_only_effective": false,
+        "version_changed": false,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-006:edge:version:/version",
+        "SQLI-006:edge:baseline:/api/user",
+        "SQLI-006:edge:mutation:/api/user:or_true",
+        "SQLI-006:edge:mutation:/api/user:bool_true",
+        "SQLI-006:edge:mutation:/api/user:bool_false",
+        "SQLI-006:edge:baseline:/api/search",
+        "SQLI-006:edge:mutation:/api/search:or_string",
+        "SQLI-006:edge:baseline:/api/export",
+        "SQLI-006:edge:mutation:/api/export:or_true",
+        "SQLI-006:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "miss"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-007",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v6_broken",
+      "verdict": "UNVERIFIABLE",
+      "pattern": "baseline_broken",
+      "rule_id": "R02_BASELINE_BROKEN",
+      "confidence": "high",
+      "human_review": "required",
+      "expected_verdict": "UNVERIFIABLE",
+      "expected_pattern": "baseline_broken",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": false,
+        "reachable": false,
+        "poc_effective": false,
+        "poc_neutralized": false,
+        "primary_effective": false,
+        "mutation_effective": false,
+        "sibling_effective": false,
+        "origin_only_effective": false,
+        "version_changed": false,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-007:edge:version:/version",
+        "SQLI-007:edge:baseline:/api/user",
+        "SQLI-007:edge:baseline:/api/search",
+        "SQLI-007:edge:baseline:/api/export",
+        "SQLI-007:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "SQLI-008",
+      "lab": "sqli",
+      "vuln_type": "sqli_numeric",
+      "variant": "v7_unreachable",
+      "verdict": "UNVERIFIABLE",
+      "pattern": "unreachable",
+      "rule_id": "R01_UNREACHABLE",
+      "confidence": "high",
+      "human_review": "required",
+      "expected_verdict": "UNVERIFIABLE",
+      "expected_pattern": "unreachable",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": false,
+        "baseline_ok": false,
+        "reachable": false,
+        "poc_effective": false,
+        "poc_neutralized": false,
+        "primary_effective": false,
+        "mutation_effective": false,
+        "sibling_effective": false,
+        "origin_only_effective": false,
+        "version_changed": false,
+        "edge_block_observed": false
+      },
+      "evidence_ids": [
+        "SQLI-008:edge:version:/version",
+        "SQLI-008:edge:baseline:/api/user",
+        "SQLI-008:edge:baseline:/api/search",
+        "SQLI-008:edge:baseline:/api/export",
+        "SQLI-008:edge:poc:/api/user"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "XSS-001",
+      "lab": "xss",
+      "vuln_type": "xss_reflected",
+      "variant": "x0_vulnerable",
+      "verdict": "UNFIXED",
+      "pattern": "no_fix",
+      "rule_id": "X05_UNFIXED",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "no_fix",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": true,
+        "poc_neutralized": false,
+        "body_breakable": true,
+        "attr_breakable": true,
+        "script_breakable": true,
+        "any_context_breakable": true,
+        "all_contexts_breakable": true,
+        "reported_surface_safe": false,
+        "stored_effective": true,
+        "encoding_observed": false,
+        "csp_present": false
+      },
+      "evidence_ids": [
+        "XSS-001:version",
+        "XSS-001:baseline",
+        "XSS-001:poc",
+        "XSS-001:context:body",
+        "XSS-001:context:attr",
+        "XSS-001:context:script",
+        "XSS-001:stored"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "miss"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "miss"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "miss"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "skipped"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "miss"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "skipped"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "skipped"
+        ],
+        [
+          "R07_UNFIXED",
+          "skipped"
+        ],
+        [
+          "X05_UNFIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "XSS-002",
+      "lab": "xss",
+      "vuln_type": "xss_reflected",
+      "variant": "x1_truefix",
+      "verdict": "FIXED",
+      "pattern": "root_cause",
+      "rule_id": "X06_FIXED",
+      "confidence": "medium",
+      "human_review": "recommended",
+      "expected_verdict": "FIXED",
+      "expected_pattern": "root_cause",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "body_breakable": false,
+        "attr_breakable": false,
+        "script_breakable": false,
+        "any_context_breakable": false,
+        "all_contexts_breakable": false,
+        "reported_surface_safe": true,
+        "stored_effective": false,
+        "encoding_observed": true,
+        "csp_present": false
+      },
+      "evidence_ids": [
+        "XSS-002:version",
+        "XSS-002:baseline",
+        "XSS-002:poc",
+        "XSS-002:context:body",
+        "XSS-002:context:attr",
+        "XSS-002:context:script",
+        "XSS-002:stored"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "miss"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "miss"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "miss"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "skipped"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "miss"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "skipped"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "skipped"
+        ],
+        [
+          "R07_UNFIXED",
+          "skipped"
+        ],
+        [
+          "X05_UNFIXED",
+          "miss"
+        ],
+        [
+          "A06_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R08_FIXED",
+          "skipped"
+        ],
+        [
+          "X06_FIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "XSS-003",
+      "lab": "xss",
+      "vuln_type": "xss_reflected",
+      "variant": "x2_angle_only",
+      "verdict": "UNFIXED",
+      "pattern": "context_mismatch",
+      "rule_id": "X03_CONTEXT_MISMATCH",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "context_mismatch",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "body_breakable": false,
+        "attr_breakable": true,
+        "script_breakable": true,
+        "any_context_breakable": true,
+        "all_contexts_breakable": false,
+        "reported_surface_safe": false,
+        "stored_effective": false,
+        "encoding_observed": true,
+        "csp_present": false
+      },
+      "evidence_ids": [
+        "XSS-003:version",
+        "XSS-003:baseline",
+        "XSS-003:poc",
+        "XSS-003:context:body",
+        "XSS-003:context:attr",
+        "XSS-003:context:script",
+        "XSS-003:stored"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "miss"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "miss"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "XSS-004",
+      "lab": "xss",
+      "vuln_type": "xss_reflected",
+      "variant": "x3_blacklist",
+      "verdict": "UNFIXED",
+      "pattern": "bypassable_filter",
+      "rule_id": "X04_BYPASSABLE_FILTER",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "bypassable_filter",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "body_breakable": true,
+        "attr_breakable": true,
+        "script_breakable": true,
+        "any_context_breakable": true,
+        "all_contexts_breakable": true,
+        "reported_surface_safe": false,
+        "stored_effective": true,
+        "encoding_observed": false,
+        "csp_present": false
+      },
+      "evidence_ids": [
+        "XSS-004:version",
+        "XSS-004:baseline",
+        "XSS-004:poc",
+        "XSS-004:context:body",
+        "XSS-004:context:attr",
+        "XSS-004:context:script",
+        "XSS-004:stored"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "miss"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "miss"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "skipped"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "miss"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "skipped"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "XSS-005",
+      "lab": "xss",
+      "vuln_type": "xss_reflected",
+      "variant": "x4_csp_only",
+      "verdict": "MITIGATED_NOT_FIXED",
+      "pattern": "csp_mitigation",
+      "rule_id": "X01_CSP_ONLY",
+      "confidence": "high",
+      "human_review": "required",
+      "expected_verdict": "MITIGATED_NOT_FIXED",
+      "expected_pattern": "csp_mitigation",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": true,
+        "poc_neutralized": false,
+        "body_breakable": true,
+        "attr_breakable": true,
+        "script_breakable": true,
+        "any_context_breakable": true,
+        "all_contexts_breakable": true,
+        "reported_surface_safe": false,
+        "stored_effective": true,
+        "encoding_observed": false,
+        "csp_present": true
+      },
+      "evidence_ids": [
+        "XSS-005:version",
+        "XSS-005:baseline",
+        "XSS-005:poc",
+        "XSS-005:context:body",
+        "XSS-005:context:attr",
+        "XSS-005:context:script",
+        "XSS-005:stored"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "XSS-006",
+      "lab": "xss",
+      "vuln_type": "xss_reflected",
+      "variant": "x5_partial",
+      "verdict": "PARTIAL",
+      "pattern": "single_point",
+      "rule_id": "X02_STORED_UNFIXED",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "single_point",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "baseline_ok": true,
+        "reachable": true,
+        "poc_effective": false,
+        "poc_neutralized": true,
+        "body_breakable": false,
+        "attr_breakable": false,
+        "script_breakable": false,
+        "any_context_breakable": false,
+        "all_contexts_breakable": false,
+        "reported_surface_safe": true,
+        "stored_effective": true,
+        "encoding_observed": true,
+        "csp_present": false
+      },
+      "evidence_ids": [
+        "XSS-006:version",
+        "XSS-006:baseline",
+        "XSS-006:poc",
+        "XSS-006:context:body",
+        "XSS-006:context:attr",
+        "XSS-006:context:script",
+        "XSS-006:stored"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "skipped"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "miss"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "skipped"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-001",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a0_vulnerable",
+      "verdict": "UNFIXED",
+      "pattern": "no_fix",
+      "rule_id": "A06_UNFIXED",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "no_fix",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": true,
+        "sibling_effective": true,
+        "vertical_effective": true,
+        "list_filtered": false,
+        "id_format": "numeric",
+        "silent_write_effective": false
+      },
+      "evidence_ids": [
+        "ACC-001:reset",
+        "ACC-001:login",
+        "ACC-001:login",
+        "ACC-001:alice_list",
+        "ACC-001:bob_list",
+        "ACC-001:baseline",
+        "ACC-001:horizontal",
+        "ACC-001:sibling",
+        "ACC-001:vertical",
+        "ACC-001:delete",
+        "ACC-001:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "miss"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "miss"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "miss"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "miss"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "miss"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "skipped"
+        ],
+        [
+          "R07_UNFIXED",
+          "skipped"
+        ],
+        [
+          "X05_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A06_UNFIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-002",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a1_truefix",
+      "verdict": "FIXED",
+      "pattern": "root_cause",
+      "rule_id": "A07_FIXED",
+      "confidence": "medium",
+      "human_review": "recommended",
+      "expected_verdict": "FIXED",
+      "expected_pattern": "root_cause",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": false,
+        "sibling_effective": false,
+        "vertical_effective": false,
+        "list_filtered": true,
+        "id_format": "numeric",
+        "silent_write_effective": false
+      },
+      "evidence_ids": [
+        "ACC-002:reset",
+        "ACC-002:login",
+        "ACC-002:login",
+        "ACC-002:alice_list",
+        "ACC-002:bob_list",
+        "ACC-002:baseline",
+        "ACC-002:horizontal",
+        "ACC-002:sibling",
+        "ACC-002:vertical",
+        "ACC-002:delete",
+        "ACC-002:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "miss"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "miss"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "miss"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "miss"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "miss"
+        ],
+        [
+          "R06_VERSION_ONLY",
+          "skipped"
+        ],
+        [
+          "R07_UNFIXED",
+          "skipped"
+        ],
+        [
+          "X05_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A06_UNFIXED",
+          "miss"
+        ],
+        [
+          "R08_FIXED",
+          "skipped"
+        ],
+        [
+          "X06_FIXED",
+          "skipped"
+        ],
+        [
+          "A07_FIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-003",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a2_list_only",
+      "verdict": "UNFIXED",
+      "pattern": "list_filtered_not_object",
+      "rule_id": "A05_LIST_ONLY",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "list_filtered_not_object",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": true,
+        "sibling_effective": true,
+        "vertical_effective": false,
+        "list_filtered": true,
+        "id_format": "numeric",
+        "silent_write_effective": false
+      },
+      "evidence_ids": [
+        "ACC-003:reset",
+        "ACC-003:login",
+        "ACC-003:login",
+        "ACC-003:alice_list",
+        "ACC-003:bob_list",
+        "ACC-003:baseline",
+        "ACC-003:horizontal",
+        "ACC-003:sibling",
+        "ACC-003:vertical",
+        "ACC-003:delete",
+        "ACC-003:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "miss"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "miss"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "miss"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "miss"
+        ],
+        [
+          "X04_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "A05_LIST_ONLY",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-004",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a3_uuid",
+      "verdict": "UNFIXED",
+      "pattern": "unguessable_id",
+      "rule_id": "A04_UNGUESSABLE_ID",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "unguessable_id",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": true,
+        "sibling_effective": true,
+        "vertical_effective": true,
+        "list_filtered": true,
+        "id_format": "uuid",
+        "silent_write_effective": false
+      },
+      "evidence_ids": [
+        "ACC-004:reset",
+        "ACC-004:login",
+        "ACC-004:login",
+        "ACC-004:alice_list",
+        "ACC-004:bob_list",
+        "ACC-004:baseline",
+        "ACC-004:horizontal",
+        "ACC-004:sibling",
+        "ACC-004:vertical",
+        "ACC-004:delete",
+        "ACC-004:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "miss"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "miss"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "miss"
+        ],
+        [
+          "R05_BYPASSABLE_FILTER",
+          "skipped"
+        ],
+        [
+          "X03_CONTEXT_MISMATCH",
+          "skipped"
+        ],
+        [
+          "A04_UNGUESSABLE_ID",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-005",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a4_partial",
+      "verdict": "PARTIAL",
+      "pattern": "single_point",
+      "rule_id": "A03_SIBLING_VIEW",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "single_point",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": false,
+        "sibling_effective": true,
+        "vertical_effective": false,
+        "list_filtered": true,
+        "id_format": "numeric",
+        "silent_write_effective": false
+      },
+      "evidence_ids": [
+        "ACC-005:reset",
+        "ACC-005:login",
+        "ACC-005:login",
+        "ACC-005:alice_list",
+        "ACC-005:bob_list",
+        "ACC-005:baseline",
+        "ACC-005:horizontal",
+        "ACC-005:sibling",
+        "ACC-005:vertical",
+        "ACC-005:delete",
+        "ACC-005:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "miss"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "miss"
+        ],
+        [
+          "R04_SINGLE_POINT",
+          "skipped"
+        ],
+        [
+          "X02_STORED_UNFIXED",
+          "skipped"
+        ],
+        [
+          "A03_SIBLING_VIEW",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-006",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a5_vertical",
+      "verdict": "PARTIAL",
+      "pattern": "vertical_unfixed",
+      "rule_id": "A02_VERTICAL_UNFIXED",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "vertical_unfixed",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": false,
+        "sibling_effective": false,
+        "vertical_effective": true,
+        "list_filtered": true,
+        "id_format": "numeric",
+        "silent_write_effective": false
+      },
+      "evidence_ids": [
+        "ACC-006:reset",
+        "ACC-006:login",
+        "ACC-006:login",
+        "ACC-006:alice_list",
+        "ACC-006:bob_list",
+        "ACC-006:baseline",
+        "ACC-006:horizontal",
+        "ACC-006:sibling",
+        "ACC-006:vertical",
+        "ACC-006:delete",
+        "ACC-006:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "miss"
+        ],
+        [
+          "R03_EDGE_VIRTUAL_PATCH",
+          "skipped"
+        ],
+        [
+          "X01_CSP_ONLY",
+          "skipped"
+        ],
+        [
+          "A02_VERTICAL_UNFIXED",
+          "HIT"
+        ]
+      ]
+    },
+    {
+      "case_id": "ACC-007",
+      "lab": "access",
+      "vuln_type": "access_control",
+      "variant": "a6_write_silent",
+      "verdict": "UNFIXED",
+      "pattern": "silent_write",
+      "rule_id": "A01_SILENT_WRITE",
+      "confidence": "high",
+      "human_review": "none",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "silent_write",
+      "match_verdict": true,
+      "match_pattern": true,
+      "signals": {
+        "connection_ok": true,
+        "auth_ok": true,
+        "baseline_ok": true,
+        "victim_resource_found": true,
+        "reachable": true,
+        "horizontal_effective": false,
+        "sibling_effective": false,
+        "vertical_effective": false,
+        "list_filtered": true,
+        "id_format": "numeric",
+        "silent_write_effective": true
+      },
+      "evidence_ids": [
+        "ACC-007:reset",
+        "ACC-007:login",
+        "ACC-007:login",
+        "ACC-007:alice_list",
+        "ACC-007:bob_list",
+        "ACC-007:baseline",
+        "ACC-007:horizontal",
+        "ACC-007:sibling",
+        "ACC-007:vertical",
+        "ACC-007:delete",
+        "ACC-007:after_delete"
+      ],
+      "trace": [
+        [
+          "R01_UNREACHABLE",
+          "miss"
+        ],
+        [
+          "R02_BASELINE_BROKEN",
+          "miss"
+        ],
+        [
+          "A01_SILENT_WRITE",
+          "HIT"
+        ]
+      ]
+    }
+  ]
+}

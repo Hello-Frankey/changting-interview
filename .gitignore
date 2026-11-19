@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+lab/*/lab.db
+lab/*/logs/
+lab/*/.docker/
+_prep/
+workspace/
+deploy/.docker/
+docs/*.pdf

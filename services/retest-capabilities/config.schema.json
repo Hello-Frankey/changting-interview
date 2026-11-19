@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "repoRoot": {
+      "type": "string",
+      "description": "本仓库在宿主机上的绝对路径，Python 能力层从这里定位 tools/retest_cli.py"
+    },
+    "python": {
+      "type": "string",
+      "default": "python3",
+      "description": "Python 解释器路径"
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "default": 120000,
+      "description": "单次能力调用超时（毫秒）"
+    }
+  },
+  "required": ["repoRoot"],
+  "additionalProperties": false
+}

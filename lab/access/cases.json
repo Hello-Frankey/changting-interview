@@ -1,0 +1,144 @@
+{
+  "lab": "access-minimal",
+  "note": "探针会先调用 POST /reset 复原订单，再用两个账号做跨主体对照。a6 的删除操作是破坏性的，必须在 reset 之后测。",
+  "verdict_space": ["FIXED", "PARTIAL", "MITIGATED_NOT_FIXED", "UNFIXED", "UNVERIFIABLE"],
+  "pattern_space": [
+    "root_cause",
+    "single_point",
+    "vertical_unfixed",
+    "list_filtered_not_object",
+    "unguessable_id",
+    "silent_write",
+    "no_fix",
+    "baseline_broken",
+    "unreachable"
+  ],
+  "cases": [
+    {
+      "case_id": "ACC-001",
+      "variant": "a0_vulnerable",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "业务方称已修复"
+      },
+      "targets": {"edge": "http://127.0.0.1:8200", "origin": "http://127.0.0.1:8200"},
+      "ground_truth": "unfixed",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "no_fix",
+      "intent": "对照组。只校验登录、不校验归属。"
+    },
+    {
+      "case_id": "ACC-002",
+      "variant": "a1_truefix",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "所有入口绑定主体-对象关系，管理接口校验角色"
+      },
+      "targets": {"edge": "http://127.0.0.1:8201", "origin": "http://127.0.0.1:8201"},
+      "ground_truth": "fixed",
+      "expected_verdict": "FIXED",
+      "expected_pattern": "root_cause",
+      "intent": "根因修复：归属校验落在数据访问层，水平与垂直同时封死。"
+    },
+    {
+      "case_id": "ACC-003",
+      "variant": "a2_list_only",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "列表已按当前用户过滤"
+      },
+      "targets": {"edge": "http://127.0.0.1:8202", "origin": "http://127.0.0.1:8202"},
+      "ground_truth": "surface_list_only",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "list_filtered_not_object",
+      "intent": "只过滤了列表，单对象接口仍可直取。这是越权最常见的假修复。"
+    },
+    {
+      "case_id": "ACC-004",
+      "variant": "a3_uuid",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "订单 ID 已改为 UUID，无法猜测"
+      },
+      "targets": {"edge": "http://127.0.0.1:8203", "origin": "http://127.0.0.1:8203"},
+      "ground_truth": "surface_unguessable_id",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "unguessable_id",
+      "intent": "不可猜测 ≠ 授权：UUID 会通过分享链接、日志、导出文件泄露。"
+    },
+    {
+      "case_id": "ACC-005",
+      "variant": "a4_partial",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "详情接口已加归属校验"
+      },
+      "targets": {"edge": "http://127.0.0.1:8204", "origin": "http://127.0.0.1:8204"},
+      "ground_truth": "partial",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "single_point",
+      "intent": "详情修了，子资源 /items 没修。同一对象的不同视图。"
+    },
+    {
+      "case_id": "ACC-006",
+      "variant": "a5_vertical",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "订单归属已校验"
+      },
+      "targets": {"edge": "http://127.0.0.1:8205", "origin": "http://127.0.0.1:8205"},
+      "ground_truth": "partial_vertical",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "vertical_unfixed",
+      "intent": "水平修了，垂直没修：普通用户仍能调管理接口。两个正交维度。"
+    },
+    {
+      "case_id": "ACC-007",
+      "variant": "a6_write_silent",
+      "asset": "order-service",
+      "vuln_type": "access_control",
+      "reported_version": "5.1.0",
+      "ticket": {
+        "title": "订单接口存在水平越权，可读取他人订单",
+        "endpoint": "/api/orders/{id}",
+        "poc": {"note": "登录后直接遍历订单 ID"},
+        "fix_note": "读接口已全部加校验"
+      },
+      "targets": {"edge": "http://127.0.0.1:8206", "origin": "http://127.0.0.1:8206"},
+      "ground_truth": "surface_silent_write",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "silent_write",
+      "intent": "读修好了，但删除是「先删后判」：返回 403，数据已经没了。"
+    }
+  ]
+}

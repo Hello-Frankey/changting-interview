@@ -1,0 +1,52 @@
+# 漏洞复测 Agent —— agent-compose 项目定义
+#
+# 接入方式：项目级 octobus_servers（daemon v2611+ 支持）
+#   比全局 Capability Gateway 更清晰：连接随项目走，不依赖 daemon 全局设置。
+#   无论哪种方式，OctoBus 凭据都留在 daemon 侧，沙箱只能拿到每沙箱签发的 CAP_TOKEN。
+#
+# daemon 侧仍需两个启动变量（数据面 capproxy）：
+#   CAP_GRPC_LISTEN=0.0.0.0:7411
+#   CAP_GRPC_TARGET=agent-compose:7411
+#
+# 运行前先执行： python3 scripts/sync_workspace.py
+
+name: retest-project
+
+agents:
+  verifier:
+    # 注意：guest 镜像（v2607 系列）的 runtime 只认 codex/claude/gemini/opencode，
+    # 写 dsh 会在沙箱内报 unsupported provider。这里用 claude：
+    # 新版 daemon（v2611+）能把 Anthropic Messages 桥接到后端的 chat_completions。
+    provider: claude
+    model: deepseek-flash
+    image: ghcr.io/chaitin/agent-compose-guest:latest
+    driver:
+      docker: {}
+
+    # 只挂载生成出来的工作区，不含 ground truth
+    workspace:
+      provider: file
+      path: ./workspace
+
+    # 不带 server 限定：使用 daemon 全局 Capability Gateway 的连接。
+    # 带限定（local/retest-agent）时 capproxy 的授权集记录的是限定名，
+    # 而客户端必须发裸 capset id，两者对不上会报 "capset ... is not allowed"。
+    capset_ids:
+      - retest-agent
+
+    scheduler:
+      enabled: true
+      triggers:
+        - name: nightly-retest
+          cron: "0 2 * * *"
+          # 提示词必须是祈使句、且第一条就是具体命令。
+          # 实测：写成「按 retest.md 的流程…」会让模型先去读文档，而它输出纯文本的那一轮
+          # 会被判定为任务结束，整次运行只活 4 秒。详见 docs/DEPLOYMENT.md 的复盘。
+          prompt: |
+            执行 ./cap.sh ListTickets '{"lab":"all"}' 拿到全部工单。
+            然后对每一张工单依次执行：
+            ./cap.sh CollectEvidence '{"case_id":"<ID>"}'
+            ./cap.sh ComputeSignals '{"case_id":"<ID>"}'
+            ./cap.sh Judge '{"case_id":"<ID>"}'
+            ./cap.sh ValidateReport '{"case_id":"<ID>","verdict":"<取Judge的verdict>","pattern":"<取Judge的pattern>","evidenceIds":<取Judge的evidenceIds>,"explanation":"retest"}'
+            全部处理完后输出表格：case_id、结论、模式，最后写总数与各结论的统计。

@@ -1,0 +1,7 @@
+{
+  "labs": [
+    { "name": "sqli",   "cases": "lab/sqli/cases.json",   "vuln_types": ["sqli_numeric"] },
+    { "name": "xss",    "cases": "lab/xss/cases.json",    "vuln_types": ["xss_reflected"] },
+    { "name": "access", "cases": "lab/access/cases.json", "vuln_types": ["access_control"] }
+  ]
+}

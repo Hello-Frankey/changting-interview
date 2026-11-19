@@ -1,0 +1,37 @@
+# 越权靶场容器编排（端口 8200-8206）
+# 容器内必须 BIND=0.0.0.0，否则 Docker 端口映射落不到 loopback 上。
+services:
+  a0-vulnerable:
+    build: .
+    environment: { VARIANT: a0_vulnerable, PORT: "8200", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8200:8200"]
+
+  a1-truefix:
+    build: .
+    environment: { VARIANT: a1_truefix, PORT: "8201", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8201:8201"]
+
+  a2-list-only:
+    build: .
+    environment: { VARIANT: a2_list_only, PORT: "8202", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8202:8202"]
+
+  a3-uuid:
+    build: .
+    environment: { VARIANT: a3_uuid, PORT: "8203", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8203:8203"]
+
+  a4-partial:
+    build: .
+    environment: { VARIANT: a4_partial, PORT: "8204", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8204:8204"]
+
+  a5-vertical:
+    build: .
+    environment: { VARIANT: a5_vertical, PORT: "8205", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8205:8205"]
+
+  a6-write-silent:
+    build: .
+    environment: { VARIANT: a6_write_silent, PORT: "8206", BIND: "0.0.0.0" }
+    ports: ["127.0.0.1:8206:8206"]

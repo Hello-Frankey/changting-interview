@@ -1,0 +1,125 @@
+{
+  "lab": "xss-minimal",
+  "note": "存储型用例依赖进程内状态，探针在每次测试前会调用 /comment/reset 清空。",
+  "verdict_space": ["FIXED", "PARTIAL", "MITIGATED_NOT_FIXED", "UNFIXED", "UNVERIFIABLE"],
+  "pattern_space": [
+    "root_cause",
+    "single_point",
+    "context_mismatch",
+    "bypassable_filter",
+    "csp_mitigation",
+    "no_fix",
+    "baseline_broken",
+    "unreachable"
+  ],
+  "cases": [
+    {
+      "case_id": "XSS-001",
+      "variant": "x0_vulnerable",
+      "asset": "search-ui",
+      "vuln_type": "xss_reflected",
+      "reported_version": "3.2.0",
+      "ticket": {
+        "title": "搜索页 q 参数存在反射型 XSS",
+        "endpoint": "/echo/body",
+        "poc": {"q": "<script>alert(1)</script>"},
+        "fix_note": "业务方称已修复"
+      },
+      "targets": {"edge": "http://127.0.0.1:8100", "origin": "http://127.0.0.1:8100"},
+      "ground_truth": "unfixed",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "no_fix",
+      "intent": "对照组。三个上下文全部裸反射。"
+    },
+    {
+      "case_id": "XSS-002",
+      "variant": "x1_truefix",
+      "asset": "search-ui",
+      "vuln_type": "xss_reflected",
+      "reported_version": "3.2.0",
+      "ticket": {
+        "title": "搜索页 q 参数存在反射型 XSS",
+        "endpoint": "/echo/body",
+        "poc": {"q": "<script>alert(1)</script>"},
+        "fix_note": "按上下文分别编码（正文转义 / 属性转义 / JS 字符串转义）"
+      },
+      "targets": {"edge": "http://127.0.0.1:8101", "origin": "http://127.0.0.1:8101"},
+      "ground_truth": "fixed",
+      "expected_verdict": "FIXED",
+      "expected_pattern": "root_cause",
+      "intent": "根因修复：每个上下文用自己的编码方式，变体全灭。"
+    },
+    {
+      "case_id": "XSS-003",
+      "variant": "x2_angle_only",
+      "asset": "search-ui",
+      "vuln_type": "xss_reflected",
+      "reported_version": "3.2.0",
+      "ticket": {
+        "title": "搜索页 q 参数存在反射型 XSS",
+        "endpoint": "/echo/body",
+        "poc": {"q": "<script>alert(1)</script>"},
+        "fix_note": "已对用户输入统一做 HTML 实体转义"
+      },
+      "targets": {"edge": "http://127.0.0.1:8102", "origin": "http://127.0.0.1:8102"},
+      "ground_truth": "surface_context_mismatch",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "context_mismatch",
+      "intent": "编码存在但用错了上下文：只转义尖括号，引号原样透出，属性和 JS 字符串都能逃逸。"
+    },
+    {
+      "case_id": "XSS-004",
+      "variant": "x3_blacklist",
+      "asset": "search-ui",
+      "vuln_type": "xss_reflected",
+      "reported_version": "3.2.0",
+      "ticket": {
+        "title": "搜索页 q 参数存在反射型 XSS",
+        "endpoint": "/echo/body",
+        "poc": {"q": "<script>alert(1)</script>"},
+        "fix_note": "已增加关键字过滤，拦截 <script"
+      },
+      "targets": {"edge": "http://127.0.0.1:8103", "origin": "http://127.0.0.1:8103"},
+      "ground_truth": "surface_bypassable_filter",
+      "expected_verdict": "UNFIXED",
+      "expected_pattern": "bypassable_filter",
+      "intent": "黑名单只认 <script，<svg onload=> / 属性逃逸 / JS 字符串逃逸全部幸存。"
+    },
+    {
+      "case_id": "XSS-005",
+      "variant": "x4_csp_only",
+      "asset": "search-ui",
+      "vuln_type": "xss_reflected",
+      "reported_version": "3.2.0",
+      "ticket": {
+        "title": "搜索页 q 参数存在反射型 XSS",
+        "endpoint": "/echo/body",
+        "poc": {"q": "<script>alert(1)</script>"},
+        "fix_note": "已下发 Content-Security-Policy 响应头"
+      },
+      "targets": {"edge": "http://127.0.0.1:8104", "origin": "http://127.0.0.1:8104"},
+      "ground_truth": "mitigated_csp",
+      "expected_verdict": "MITIGATED_NOT_FIXED",
+      "expected_pattern": "csp_mitigation",
+      "intent": "CSP 是缓解层，不是修复：反射仍在，换一个合法源的利用方式即可绕过。"
+    },
+    {
+      "case_id": "XSS-006",
+      "variant": "x5_partial",
+      "asset": "search-ui",
+      "vuln_type": "xss_reflected",
+      "reported_version": "3.2.0",
+      "ticket": {
+        "title": "搜索页 q 参数存在反射型 XSS",
+        "endpoint": "/echo/body",
+        "poc": {"q": "<script>alert(1)</script>"},
+        "fix_note": "已修复搜索页的反射点"
+      },
+      "targets": {"edge": "http://127.0.0.1:8105", "origin": "http://127.0.0.1:8105"},
+      "ground_truth": "partial",
+      "expected_verdict": "PARTIAL",
+      "expected_pattern": "single_point",
+      "intent": "反射点全修好了，但存储点（评论）没编码 —— 同一类缺陷的另一个实例。"
+    }
+  ]
+}
